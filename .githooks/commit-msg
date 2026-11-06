@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Runs the main Armada repository's commit-msg hook, so both repositories share one commit contract.
+# The main repository is expected beside this one; set `git config armada.mainRepo <path>` if it is elsewhere.
+set -euo pipefail
+
+main_repo="$(git config armada.mainRepo || echo ../armada-printer-fleet-management)"
+hook="${main_repo}/.githooks/commit-msg"
+if [ ! -f "$hook" ]; then
+  echo "commit-msg: cannot find the main repository's hook at ${hook}." >&2
+  echo "  Clone the main repository beside this one, or run: git config armada.mainRepo <path>" >&2
+  exit 1
+fi
+exec bash "$hook" "$@"

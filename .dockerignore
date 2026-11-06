@@ -1,0 +1,3 @@
+# The image needs only its pinned requirements; the repository is mounted at run time.
+*
+!build/requirements.txt

@@ -1,0 +1,42 @@
+# Pushing a tag vX.Y.Z-rN builds the engine on a fresh runner (no cache), signs every asset with a
+# build-provenance attestation, and publishes them as the release. Consumers check both the SHA-256
+# they pinned and the attestation.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build the engine in the pinned container
+        run: python3 scripts/build.py build --conan-cache "$RUNNER_TEMP/conan"
+      - name: Smoke test
+        run: node scripts/smoke.mjs
+      - name: Assemble the assets
+        run: python3 scripts/package.py --repository "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME" --release
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: dist/*
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --title "$TAG" --notes-file dist/NOTICE.txt dist/*

@@ -1,0 +1,38 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b75100e..eab3057 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -326,7 +326,7 @@ if (EMSCRIPTEN)
+             "SHELL:-sEXPORT_ES6=1"
+             "SHELL:-sMODULARIZE=1"
+             "SHELL:-sSINGLE_FILE=1"
+-            "SHELL:-sENVIRONMENT=web"
++            "SHELL:-sENVIRONMENT=web,worker,node"
+             "SHELL:-sERROR_ON_UNDEFINED_SYMBOLS=0"
+             "SHELL:-sWASM_BIGINT=1"
+             "SHELL:-sSTACK_SIZE=196608"
+@@ -349,6 +349,10 @@ target_compile_definitions(CuraEngine PRIVATE
+         SENTRY_ENVIRONMENT=\"${SENTRY_ENVIRONMENT}\"
+         VERSION=\"${CURA_ENGINE_VERSION}\"
+ )
++if (EMSCRIPTEN)
++    # Armada's embind API. On the executable, not the static library, so the linker cannot drop its registrations.
++    target_sources(CuraEngine PRIVATE src/armada/armada_bindings.cpp)
++endif ()
+ 
+ # Compiling the test environment.
+ if (ENABLE_TESTING OR ENABLE_BENCHMARKS)
+diff --git a/conanfile.py b/conanfile.py
+index 6d07285..4fac938 100644
+--- a/conanfile.py
++++ b/conanfile.py
+@@ -62,6 +62,9 @@ class CuraEngineConan(ConanFile):
+             self.version = self.conan_data["version"]
+ 
+     def export(self):
++        # Armada builds from a verified tarball with no .git; its build script writes the pinned commit first.
++        if self.conan_data.get("commit", "unknown") != "unknown":
++            return
+         git = Git(self)
+         update_conandata(self, {"version": self.version, "commit": git.get_commit()})
+ 

@@ -1,0 +1,56 @@
+# Checks every pull request: its commits follow the main repository's commit contract, and the engine
+# builds from the pins and passes the smoke test. It publishes nothing: release assets exist only for
+# tagged releases (release.yml). Actions are pinned by commit; the tag is in the trailing comment.
+name: Build
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  commit-messages:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Fetch the main repository's commit-msg hook
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: Armada-Printer-Fleet-Management/armada-printer-fleet-management
+          path: .armada-main
+          sparse-checkout: .githooks
+          persist-credentials: false
+      - name: Validate every commit in the pull request
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          status=0
+          for sha in $(git rev-list "$BASE..$HEAD"); do
+            git log -1 --format=%B "$sha" > "${RUNNER_TEMP}/msg"
+            if ! bash .armada-main/.githooks/commit-msg "${RUNNER_TEMP}/msg"; then
+              echo "::error::Commit $sha does not satisfy the commit contract"
+              status=1
+            fi
+          done
+          exit $status
+
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build the engine in the pinned container
+        run: python3 scripts/build.py build --conan-cache "$RUNNER_TEMP/conan"
+      - name: Smoke test
+        run: node scripts/smoke.mjs

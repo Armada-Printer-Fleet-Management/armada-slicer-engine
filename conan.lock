@@ -1,0 +1,29 @@
+{
+    "version": "0.5",
+    "requires": [
+        "zlib/1.3.2#1cb806da49011867778ffb6ac7190fcb%1777558780.503",
+        "stb/cci.20230920#ed79bd361e974a99137f214efb117eef%1720366013.319",
+        "standardprojectsettings/0.2.0@ultimaker/stable#af70631ee980187032a76e136b293365%1764021860.722",
+        "standardprojectsettings/0.2.0#af70631ee980187032a76e136b293365%1764021853.279",
+        "spdlog/1.15.1#92e99f07f134481bce4b70c1a41060e7%1738512735.307",
+        "scripta/1.1.0-alpha.0+b96045@ultimaker/testing#3786da67f9aa951719291aaab18d0785%1764021592.37",
+        "rapidjson/cci.20230929#8dc0392af2b3aaea7312095f0ba53467%1705070242.903",
+        "range-v3/0.12.0#4c05d91d7b40e6b91b44b5345ac64408%1689218196.637",
+        "mapbox-wagyu/0.5.0@ultimaker/stable#e6cb299485b686893e07209fea6d5a0b%1764019536.976",
+        "mapbox-variant/1.2.0#e0533cc4c1625d48a0238760e6c85e35%1701546611.553",
+        "mapbox-geometry/2.0.3#1560d81c6cd8ea159ecbb748bf8b6090%1701389850.884",
+        "libpng/1.6.48#dd0fc04a42b9a23bce065545a81d4847%1746141949.748",
+        "fmt/11.1.3#dfade9d4636fc62d33e15529e29f667e%1785754560.582",
+        "clipper/6.4.2@ultimaker/stable#7c8fe83a09fcb2e6adb118763eaa6e58%1766052350.195",
+        "boost/1.88.0#87f96b9e9412764da9c87b9e68383736%1790854188.942"
+    ],
+    "build_requires": [
+        "nodejs/20.16.0@ultimaker/stable#50865f836f8447d68a7a59fed6cb0a35%1764020296.839",
+        "emsdk/3.1.73@ultimaker/stable#10b4ea794157e1750fba39072fb09712%1766064828.307"
+    ],
+    "python_requires": [
+        "sentrylibrary/1.0.0#004cb2aaa533fb28697dd9a302d652e8%1766066070.023",
+        "npmpackage/1.2.0#6f3f48f7d2844e75af81a57e2389e510%1780171544.583"
+    ],
+    "config_requires": []
+}

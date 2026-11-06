@@ -1,0 +1,23 @@
+{
+  "targets": ["wasm"],
+  "sources": {
+    "curaengine": {
+      "repository": "Ultimaker/CuraEngine",
+      "tag": "5.13.0",
+      "commit": "636f9608621fd1d6c1b75ad2a969de53beabfbc6",
+      "sha256": "287450f5f4d1afaab6954272cc986e1a4ba5c7b71a28303a70f45996c786980e"
+    },
+    "cura": {
+      "repository": "Ultimaker/Cura",
+      "tag": "5.13.0",
+      "commit": "1fb8a7610460e03ec62da950d1c173a249b23b59",
+      "sha256": "5911c63c465d23e8c27262b5702c2e708844b33fefb0f924855fa1a17158a089"
+    },
+    "conan-config": {
+      "repository": "Ultimaker/conan-config",
+      "tag": null,
+      "commit": "bba7984a7363709f239fc13a3a3e0b02ecc2488b",
+      "sha256": "1ee90b435b5dffcf24267c5765ba95ad3a7e4f2b6809e2abf6d3b7db9eb37f8e"
+    }
+  }
+}

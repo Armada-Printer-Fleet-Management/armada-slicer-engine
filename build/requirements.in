@@ -1,0 +1,3 @@
+# Matches the Conan version Ultimaker's own CI runs
+# Regenerate requirements.txt from this file with the command in AGENTS.md; never edit it by hand.
+conan==2.25.0
