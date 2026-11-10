@@ -78,11 +78,13 @@ def main() -> None:
     for name, source in ASSETS.items():
         shutil.copy2(source, DIST / name)
     buildinfo["release"] = {"repository": args.repository, "ref": args.ref}
-    (DIST / "BUILDINFO.json").write_text(json.dumps(buildinfo, indent=2) + "\n", encoding="utf-8")
-    (DIST / "NOTICE.txt").write_text(notice(buildinfo, args.repository, args.ref), encoding="utf-8")
+    # LF and ordinal order on every OS, so packaging on Windows produces the same bytes as CI.
+    (DIST / "BUILDINFO.json").write_text(json.dumps(buildinfo, indent=2) + "\n", encoding="utf-8", newline="\n")
+    (DIST / "NOTICE.txt").write_text(notice(buildinfo, args.repository, args.ref), encoding="utf-8", newline="\n")
 
-    sums = "".join(f"{sha256_of(path)}  {path.name}\n" for path in sorted(DIST.iterdir()))
-    (DIST / "SHA256SUMS").write_text(sums, encoding="utf-8")
+    files = sorted(DIST.iterdir(), key=lambda path: path.name)
+    sums = "".join(f"{sha256_of(path)}  {path.name}\n" for path in files)
+    (DIST / "SHA256SUMS").write_text(sums, encoding="utf-8", newline="\n")
     print(sums, end="")
 
 

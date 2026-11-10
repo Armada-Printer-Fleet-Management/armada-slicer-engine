@@ -198,6 +198,8 @@ def build(sources: dict[str, Source], jobs: int) -> None:
     configure_conan(sources["conan-config"])
     engine_source = sources["curaengine"]
     engine = prepare_engine(engine_source)
+    if not os.environ.get("SOURCE_DATE_EPOCH", "").isdigit():
+        fail("SOURCE_DATE_EPOCH is not set; run this script on the host, which sets it from the commit being built")
 
     step(f"Building every dependency and the engine from source ({jobs} parallel jobs)")
     graph_file = WORK / "graph.json"
@@ -258,14 +260,37 @@ def collect(graph: dict[str, object], sources: dict[str, Source]) -> None:
             "emsdk": emsdk["ref"] if emsdk else None,
             "profiles": {"host": PROFILE_HOST, "build": PROFILE_BUILD},
         },
+        "source": {
+            "commit": os.environ.get("ARMADA_SOURCE_COMMIT"),
+            "source_date_epoch": int(os.environ["SOURCE_DATE_EPOCH"]),
+        },
         "inputs_sha256": {
             "conan.lock": sha256_of(LOCK),
             "bindings/armada_bindings.cpp": sha256_of(BINDINGS),
             **{f"patches/{p.name}": sha256_of(p) for p in sorted(PATCHES.glob("*.patch"))},
         },
     }
-    (OUT / "BUILDINFO.json").write_text(json.dumps(buildinfo, indent=2) + "\n", encoding="utf-8")
+    (OUT / "BUILDINFO.json").write_text(json.dumps(buildinfo, indent=2) + "\n", encoding="utf-8", newline="\n")
     print(f"engine collected in {OUT.relative_to(ROOT)}")
+
+
+def source_commit() -> tuple[str, str]:
+    """The commit being built and its author time, which becomes SOURCE_DATE_EPOCH.
+
+    Author time, not committer time: a rebase merge rewrites the committer time, and the build of a pull
+    request should match the release later built from the same change on main.
+    """
+
+    def git(*arguments: str) -> str:
+        return subprocess.run(["git", "-C", str(ROOT), *arguments], check=True, capture_output=True, text=True).stdout
+
+    commit, epoch = git("log", "-1", "--format=%H %at").split()
+    if git("status", "--porcelain", "--untracked-files=no").strip():
+        print(
+            "warning: uncommitted changes; the build is stamped with the last commit's time but will not match it",
+            file=sys.stderr,
+        )
+    return commit, epoch
 
 
 def base_image() -> str:
@@ -282,7 +307,12 @@ def run_in_container(args: argparse.Namespace, forwarded: list[str]) -> None:
     step("Building the build container")
     run(["docker", "build", "-f", str(DOCKERFILE), "-t", IMAGE, str(ROOT)])
 
-    command = ["docker", "run", "--rm", "-v", f"{ROOT}:/work"]
+    # The engine compiles __DATE__ in; stamping it with the commit's time makes every rebuild byte-identical.
+    commit, epoch = source_commit()
+    command = [
+        "docker", "run", "--rm", "-v", f"{ROOT}:/work",
+        "-e", f"SOURCE_DATE_EPOCH={epoch}", "-e", f"ARMADA_SOURCE_COMMIT={commit}",
+    ]  # fmt: skip
     if args.conan_cache:
         # CI mounts a host folder it caches; run as the host user so the files stay writable there.
         cache = Path(args.conan_cache).resolve()

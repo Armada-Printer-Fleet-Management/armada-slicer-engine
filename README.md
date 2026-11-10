@@ -53,7 +53,8 @@ Docker is required for `lock` and `build`; the script builds the container and r
 | Smoke test the build | `node scripts/smoke.mjs` |
 | Assemble release assets into `dist/` | `python scripts/package.py --repository OWNER/REPO --ref REF` |
 | Regenerate `conan.lock` | `python scripts/build.py lock` |
-| Check a published asset | `gh attestation verify CuraEngine.js --repo Armada-Printer-Fleet-Management/armada-slicer-engine` |
+| Check a published asset | `gh attestation verify CuraEngine.js --repo Armada-Printer-Fleet-Management/armada-slicer-engine --signer-workflow Armada-Printer-Fleet-Management/armada-slicer-engine/.github/workflows/release.yml --source-ref refs/tags/<tag>` |
+| Reproduce a release | check out its tag, `build.py build`, `package.py --repository … --ref <tag> --release`, then `sha256sum -c` the release's `SHA256SUMS` in `dist/` |
 
 Docker needs about 8 GiB of memory at the default `--jobs 4`. A first build takes about 35 minutes.
 
