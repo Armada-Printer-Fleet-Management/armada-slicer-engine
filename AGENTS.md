@@ -34,6 +34,9 @@ specific to the build.
   and the second with `python scripts/build.py lock`.
 - **Release assets are produced only by `release.yml` on a tag.** Pull requests build and smoke-test only.
 - **Release builds never restore a cache.**
+- **Builds are byte-reproducible.** `SOURCE_DATE_EPOCH` is the built commit's author time, set by
+  `scripts/build.py` on the host. Never add an input that varies between runs (time, paths, randomness).
+  Check a release by building its tag and comparing against its `SHA256SUMS`.
 
 ## Changing the engine source
 
@@ -41,6 +44,7 @@ specific to the build.
   tarball, `git init`-ing it with `core.autocrlf=false`, editing, and saving `git diff` into `patches/`.
 - Keep patches minimal, each with a comment in the changed code saying why it exists. Current ones:
   - link for `web,worker,node`;
+  - raise the memory ceiling to 4 GB, the WebAssembly maximum (Emscripten's default is 2 GB);
   - put the bindings on the executable (static-archive registrations can be dropped);
   - take the pinned commit instead of asking git (a tarball has no `.git`).
 
